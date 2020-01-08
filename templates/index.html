@@ -1,0 +1,12 @@
+<html>
+   <body>
+      <div class="upload_form">
+         {% include 'upload_form.html' %}
+      </div>
+         {% if "image_path" in data %}
+            <div class="uploaded_image">
+               <img src="{{ data['image_path'] }}"/>
+            </div>
+         {% endif %}
+   </body>
+</html>

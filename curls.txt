@@ -1,0 +1,1 @@
+curl -X POST http://localhost:5000/output -H "Content-Type: application/json" -d '{"data":["1","2"]}'

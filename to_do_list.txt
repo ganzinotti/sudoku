@@ -1,0 +1,5 @@
+- only upload images
+- webcam functionality
+- check image size
+- display previous results
+-
