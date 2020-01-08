@@ -1,12 +1,62 @@
-<html>
+<!doctype html>
+<html lang="en">
+   {% include 'head.html' %}
    <body>
-      <div class="upload_form">
-         {% include 'upload_form.html' %}
-      </div>
-         {% if "image_path" in data %}
-            <div class="uploaded_image">
-               <img src="{{ data['image_path'] }}"/>
+      <main role="main" class="container">
+
+         {% if error %}
+            <div class="container">
+               <div class="row">
+                  <p>{{ error }}</p>
+               </div>
             </div>
          {% endif %}
+
+         <div class="container">
+            <div class="row">
+               <h1>Sudoku Solver</h1>
+            </div>
+            <div class="row">
+               <div class="col-md-6 col-sm-12">
+                  <h3>Submit new file:</h3>
+                  {% include 'upload_form.html' %}
+               </div>
+               <div class="col-md-6 col-sm-12">
+                 <h3>Submit old file:</h3>
+                  {% include 'upload_form_history.html' %}
+               </div>
+            </div>
+         </div>
+
+         <div class="container">
+               <div class="row">
+                  {% if "image_path" in data %}
+                     <div class="col-md-4 col-sm-12">
+                        <h3>Raw Image</h3>
+                        <img class="raw_img" src="{{ data['image_path'] }}"/>
+                     </div>
+                  {% endif %}
+
+                  {% if "preprocessed_image_path" in data %}
+                     <div class="col-md-4 col-sm-12">
+                        <h3>Preprocessed Image</h3>
+                        <img class="pp_img" src="{{ data['preprocessed_image_path'] }}"/>
+                     </div>
+                  {% endif %}
+
+                  {% if "solved_sudoku" in data %}
+                     <div class="col-md-4 col-sm-12">
+                        <h3>Solution</h3>
+                        {% include 'solution.html' %}
+                     </div>
+                  {% endif %}
+            </div>
+         </div>
+      </main>
+      <footer class="footer">
+         <div class="container">
+            <span class="text-muted">Prediction Team</span>
+         </div>
+      </footer>
    </body>
 </html>

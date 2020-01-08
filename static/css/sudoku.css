@@ -1,5 +1,5 @@
 html, body {
-    background-color: #FAFAFA
+    background-color: #FAFAFA;
 }
 table {
     border: 2px solid #000000;
@@ -9,19 +9,33 @@ td {
     text-align: center;
     vertical-align: middle;
 }
-input {
+.sudoku_input {
     color: #000000;
     padding: 0;
     border: 0;
     text-align: center;
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    background-color: #FFFFFF;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
     outline: none;
 }
-input:disabled {
-    background-color: #EEEEEE;
+.raw_img {
+    max-width: 300px;
+    width: 70%;
+    height: auto;
+}
+.pp_img {
+    max-width: 300px;
+    max-height: 300px;
+}
+.invalid {
+    background: #FF0000;
+}
+.recognized {
+    background: #59FF00;
+}
+.completed {
+    background: #E8E8E8;
 }
 #cell-0,  #cell-1,  #cell-2  { border-top:    2px solid #000000; }
 #cell-2,  #cell-11, #cell-20 { border-right:  2px solid #000000; }

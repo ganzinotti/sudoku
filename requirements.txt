@@ -1,2 +1,4 @@
 Flask==1.1.1
 pyomo==5.6.8
+pyutilib==5.7.3
+numpy==1.18.1

@@ -16,3 +16,6 @@ notebooks/
 *.egg-info/
 
 links.txt
+to_do_list.txt
+
+static/images/

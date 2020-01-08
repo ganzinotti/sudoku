@@ -1,0 +1,23 @@
+<table id="grid">
+    {% for number in data["solved_sudoku"] %}
+
+        {% if number == data["recognized_digits"][loop.index - 1] %}
+            {% set bg_color_class = "recognized" %}
+        {% else %}
+            {% set bg_color_class = "completed" %}
+        {% endif %}
+
+        {% if (loop.index - 1) % 9 == 0 %}
+            <tr>
+        {% endif %}
+            {% if (number == 0) or (number == "?") %}
+                <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input invalid" type="text" value="" disabled></td>
+            {% else %}
+                <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input {{ bg_color_class }}" type="text" value="{{ number }}" disabled></td>
+            {% endif %}
+        {% if (loop.index) % 9 == 0 %}
+            </tr>
+        {% endif %}
+
+    {% endfor %}
+</table>

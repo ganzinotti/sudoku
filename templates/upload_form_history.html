@@ -1,0 +1,12 @@
+<form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data">
+    <fieldset>
+      <p>
+         <select id="myList" name="filename">
+             {% for old_file in history_files %}
+                <option>{{ old_file }}</option>
+            {% endfor %}
+         </select>
+      </p>
+   </fieldset>
+    <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+</form>
