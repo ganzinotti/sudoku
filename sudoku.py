@@ -64,29 +64,5 @@ def index():
         return render_template('index.html', history_files=retrieve_history_files(), data={}, error=None)
 
 
-# @app.route("/new_upload", methods=["GET", "POST"])
-# def upload_new_file():
-#     if request.method == "POST":
-#
-#
-#
-# @app.route("/old_file", methods=["GET", "POST"])
-# def run_old_file():
-#     if request.method == "POST":
-#
-
-
-# @app.route("/output", methods=["POST"])
-# def render_output():
-#     data = request.get_json()["data"]
-#     return render_template("output.html", data=data)
-#
-#
-# @app.route("/sample_output", methods=["GET"])
-# def render_sample_output():
-#     data = np.random.randint(1, 10, size=(81,))
-#     return render_template("output.html", data=data)
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0")
