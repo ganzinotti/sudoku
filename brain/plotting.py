@@ -10,17 +10,6 @@ def show_image(img, *args, **kwargs):
     plt.show()
 
 
-def plot_many_images(images, titles, rows=1, columns=2):
-    """Plots each image in a given list as a grid structure. using Matplotlib."""
-    plt.figure(figsize=(9, 9))
-    for i, image in enumerate(images):
-        plt.subplot(rows, columns, i + 1)
-        plt.imshow(image, "gray")
-        plt.title(titles[i])
-        plt.xticks([]), plt.yticks([])  # Hide tick marks
-    plt.show()
-
-
 def draw_points(in_img, points, colour=(255, 0, 0)):
     """Draws circular points on an image."""
     img = in_img.copy()
@@ -83,7 +72,19 @@ def image_from_digits(digits, colour=255):
     ]
 
     for i in range(9):
-        row = np.concatenate(with_border[i * 9: ((i + 1) * 9)], axis=1)
+        row = np.concatenate(with_border[i * 9 : ((i + 1) * 9)], axis=1)
         rows.append(row)
 
     return np.concatenate(rows)
+
+
+def plot_many_images(images, titles, rows=1, columns=2):
+    """Plots each image in a given list in a grid format using Matplotlib."""
+    for i, image in enumerate(images):
+        plt.subplot(rows, columns, i + 1)
+        plt.imshow(image, "gray")
+        plt.title(titles[i])
+        plt.xticks([]), plt.yticks([])  # Hide tick marks
+    plt.show()
+
+

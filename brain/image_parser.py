@@ -11,8 +11,9 @@ def load_image(path):
 def parse_grid(img):
     cropped = crop_to_grid(img)
     enhanced_digits = enhance_digits(cropped)
-    digits = extract_digits(enhanced_digits)
-
+    squares = infer_grid(enhanced_digits)
+    patches = extract_patches(enhanced_digits, squares)
+    digits = [extract_digit(patch) for patch in patches]
     return digits
 
 
@@ -199,152 +200,167 @@ def cut_from_rectangle(img, rect):
     return img[int(rect[0][1]) : int(rect[1][1]), int(rect[0][0]) : int(rect[1][0])]
 
 
-def extract_digits(img):
-    # TODO Make pretty later
-    squares = infer_grid(img)
-#     patches = get_digits(cropped, squares, 28)    
-    patches = extract_patches(img, squares)
-    digits = [extract_digit(patch) for patch in patches]
-#     pp_digits = [preprocess_digit(extract_feature(digit, 28)) for digit in digits]
-    pp_digits = [preprocess_digit(digit) for digit in digits]
-    return pp_digits
-
-
 def extract_patches(img, squares):
     return [cut_from_rectangle(img, square) for square in squares]
 
 
 def extract_digit(patch):
-    corners = find_corners_of_largest_polygon(
-        cv2.bitwise_not(patch.copy(), patch.copy())
+
+    patch = cv2.copyMakeBorder(
+        patch,
+        2,
+        2,
+        2,
+        2,
+        cv2.BORDER_CONSTANT,
     )
-    cropped = crop_and_warp(patch, corners)
-    return cropped
 
+    contours, _ = cv2.findContours(
+        patch, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+    )
+    #     print("Nr. contours:", len(contours))
 
-def preprocess_digit(digit, size=28):
-    c = 255
-    digit = cv2.resize(digit, (size, size))
+    width = patch.shape[1]
+    height = patch.shape[0]
+
+    contours = filter_contour_length(contours)
+    # print("After lenght filter:", len(contours))
+    contours = filter_center_of_mass(width, height, contours)
+    # print("After center filter:", len(contours))
+    contours = filter_contours_near_corner(width, height, contours)
+    # print("After corner filter:", len(contours))
+
+    if len(contours) == 0:
+        return np.zeros((28, 28))
+
+    digit = crop_from_contours(patch, contours)
+
+    #     show_image(digit)
+
+    digit = pad_digit(digit)
+    #     show_image(digit)
+
+    digit = resize_digit(digit)
     return digit
 
-def cut_from_rect(img, rect):
-    """Cuts a rectangle from an image using the top left and bottom right points."""
-    return img[int(rect[0][1]):int(rect[1][1]), int(rect[0][0]):int(rect[1][0])]
+
+def filter_contour_length(contours):
+    return [c for c in contours if len(c) > 4]
 
 
-def scale_and_centre(img, size, margin=0, background=0):
-    """Scales and centres an image onto a new background square."""
-    h, w = img.shape[:2]
+def filter_center_of_mass(width, height, contours):
+    approved_contours = []
+    for c in contours:
+        M = cv2.moments(c)
+        if M["m00"] == 0:
+            continue
 
-    def centre_pad(length):
-        """Handles centering for a given length that may be odd or even."""
-        if length % 2 == 0:
-            side1 = int((size - length) / 2)
-            side2 = side1
-        else:
-            side1 = int((size - length) / 2)
-            side2 = side1 + 1
-        return side1, side2
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
 
-    def scale(r, x):
-        return int(r * x)
+        if not in_center(width, height, cX, cY):
+            continue
 
-    if h > w:
-        t_pad = int(margin / 2)
-        b_pad = t_pad
-        ratio = (size - margin) / h
-        w, h = scale(ratio, w), scale(ratio, h)
-        l_pad, r_pad = centre_pad(w)
-    else:
-        l_pad = int(margin / 2)
-        r_pad = l_pad
-        ratio = (size - margin) / w
-        w, h = scale(ratio, w), scale(ratio, h)
-        t_pad, b_pad = centre_pad(h)
-
-    img = cv2.resize(img, (w, h))
-    img = cv2.copyMakeBorder(img, t_pad, b_pad, l_pad, r_pad, cv2.BORDER_CONSTANT, None, background)
-    return cv2.resize(img, (size, size))
+        approved_contours.append(c)
+    return approved_contours
 
 
-def find_largest_feature(inp_img, scan_tl=None, scan_br=None):
-    """
-    Uses the fact the `floodFill` function returns a bounding box of the area it filled to find the biggest
-    connected pixel structure in the image. Fills this structure in white, reducing the rest to black.
-    """
-    img = inp_img.copy()  # Copy the image, leaving the original untouched
-    height, width = img.shape[:2]
+def in_center(width, height, c_x, c_y, fraction=0.4):
+    margin_fraction = (1.0 - fraction) / 2
 
-    max_area = 0
-    seed_point = (None, None)
+    width_margin = width * margin_fraction
+    in_center_x = width_margin <= c_x <= (width - width_margin)
 
-    if scan_tl is None:
-        scan_tl = [0, 0]
+    height_margin = height * margin_fraction
+    in_center_y = height_margin <= c_y <= (height - height_margin)
 
-    if scan_br is None:
-        scan_br = [width, height]
-
-    # Loop through the image
-    for x in range(scan_tl[0], scan_br[0]):
-        for y in range(scan_tl[1], scan_br[1]):
-            # Only operate on light or white squares
-            if img.item(y, x) == 255 and x < width and y < height:  # Note that .item() appears to take input as y, x
-                area = cv2.floodFill(img, None, (x, y), 64)
-                if area[0] > max_area:  # Gets the maximum bound area which should be the grid
-                    max_area = area[0]
-                    seed_point = (x, y)
-    
-    # Colour everything grey (compensates for features outside of our middle scanning range
-    for x in range(width):
-        for y in range(height):
-            if img.item(y, x) == 255 and x < width and y < height:
-                cv2.floodFill(img, None, (x, y), 64)
-
-    mask = np.zeros((height + 2, width + 2), np.uint8)  # Mask that is 2 pixels bigger than the image
-
-    # Highlight the main feature
-    if all([p is not None for p in seed_point]):
-        cv2.floodFill(img, mask, seed_point, 255)
-
-    top, bottom, left, right = height, 0, width, 0
-
-    for x in range(width):
-        for y in range(height):
-            if img.item(y, x) == 64:  # Hide anything that isn't the main feature
-                cv2.floodFill(img, mask, (x, y), 0)
-
-            # Find the bounding parameters
-            if img.item(y, x) == 255:
-                top = y if y < top else top
-                bottom = y if y > bottom else bottom
-                left = x if x < left else left
-                right = x if x > right else right
-
-    bbox = [[left, top], [right, bottom]]
-    return img, np.array(bbox, dtype='float32'), seed_point
+    return in_center_x and in_center_y
 
 
-def extract_feature(digit, size):
-    """Extracts a digit (if one exists) from a Sudoku square."""
+def filter_contours_near_corner(width, height, contours, fraction=1/8):
+    accepted_contours = []
+    for i, c in enumerate(contours):
+        # print("Contour", i)
+        x, y, w, h = cv2.boundingRect(c)
+        rect = (
+            (x, y),
+            (x + w, y + h)
+        )
+        #         image = patch.copy()
+        #         image = draw_rects(image, [rect], colour=(0, 255, 0))
+        #         show_image(image)
 
-#     digit = cut_from_rect(img, rect)  # Get the digit box from the whole square
+        corners = (
+            (x, y),
+            (x + w, y),
+            (x, y + h),
+            (x + w, y + h)
+        )
 
-    # Use fill feature finding to get the largest feature in middle of the box
-    # Margin used to define an area in the middle we would expect to find a pixel belonging to the digit
-    h, w = digit.shape[:2]
-    margin = int(np.mean([h, w]) / 2.5)
-    _, bbox, seed = find_largest_feature(digit, [margin, margin], [w - margin, h - margin])
-    digit = cut_from_rect(digit, bbox)
+        near_corner = False
+        for point in corners:
+            if in_corner(width, height, point[0], point[1], fraction):
+                # print("Patch rejected: near image corner")
+                near_corner = True
+                break
 
-    # Scale and pad the digit so that it fits a square of the digit size we're using for machine learning
-    w = bbox[1][0] - bbox[0][0]
-    h = bbox[1][1] - bbox[0][1]
+        if not near_corner:
+            accepted_contours.append(c)
 
-    # Ignore any small bounding boxes
-    if w > 0 and h > 0 and (w * h) > 100 and len(digit) > 0:
-        return scale_and_centre(digit, size, 4)
-    else:
-        return np.zeros((size, size), np.uint8)
+    return accepted_contours
+
+
+def in_corner(width, height, x, y, fraction=1/8):
+    width_margin = int(width * fraction)
+    height_margin = int(height * fraction)
+
+    in_top_left = x <= width_margin and y <= height_margin
+    in_top_right = x >= width - width_margin and y <= height_margin
+    in_bot_left = x <= width_margin and y >= height - height_margin
+    in_bot_right = x >= width - width_margin and y >= height - height_margin
+
+    return in_top_left or in_top_right or in_bot_left or in_bot_right
+
+
+def crop_from_contours(patch, contours):
+    #     image = draw_contours(patch.copy(), contours)
+    x, y, w, h = cv2.boundingRect(np.concatenate(contours, axis=0))
+    #     cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
+    #     show_image(image)
+
+    rect = (
+        (x, y),
+        (x + w, y + h)
+    )
+    return cut_from_rectangle(patch.copy(), rect)
+
+
+def pad_digit(digit, v_margin=0.1):
+
+    height = digit.shape[0]
+    width = digit.shape[1]
+
+    height = max(height, width)
+
+    vertical_margin = int(height * v_margin)
+    padded_height = height + 2 * vertical_margin
+
+    horizontal_margin = int((padded_height - width) / 2)
+
+    padded_digit = cv2.copyMakeBorder(
+        digit,
+        vertical_margin,
+        vertical_margin,
+        horizontal_margin,
+        horizontal_margin,
+        cv2.BORDER_CONSTANT,
+    )
+    return padded_digit
+
+
+def resize_digit(digit, size=28):
+    digit = cv2.resize(digit, (size, size))
+    return digit
 
 
 def scale_and_reshape(img):
