@@ -48,15 +48,22 @@ def save_preprocessed_image(digits: List[np.array], file_name: str, preprocessed
 
 
 def solver_pipeline(image_path: str) -> dict:
+    logging.info("Start solver")
     digits = get_digits_image(image_path)
+    logging.info("Successfully received digits")
     preprocessed_image_path = save_preprocessed_image(
         digits,
         os.path.basename(image_path),
         os.path.join("static", "pp_images"),
     )
+    logging.info("Successfully saved preprocessed image")
     model = load_trained_model(os.path.join("brain", "model", "model_weights_custom.hdf5"))
+    logging.info("Successfully loaded model")
     recognized_digits = extract_sudoku(digits, model)
+    logging.info("Successfully recognized digits")
     solved_sudoku = solve_sudoku(recognized_digits)
+    logging.info("Successfully run solver")
+    logging.info("Successfully run solver")
 
     return {
         "image_path": image_path,
