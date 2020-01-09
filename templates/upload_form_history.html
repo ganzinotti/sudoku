@@ -4,9 +4,16 @@
          <select id="myList" name="filename">
              {% for old_file in history_files %}
                 <option>{{ old_file }}</option>
-            {% endfor %}
+             {% endfor %}
          </select>
       </p>
-   </fieldset>
+    </fieldset>
     <button type="submit" class="btn btn-primary btn-sm">Submit</button>
 </form>
+
+{% if history_files|length > 0 %}
+    <br/>
+    <form action="{{ url_for('delete_files') }}" method="GET">
+        <button type="submit_delete" class="btn btn-primary btn-sm">Delete Images</button>
+    </form>
+{% endif %}
