@@ -10,6 +10,9 @@ import os
 
 app = Flask(__name__, static_url_path='/static')
 
+# set maximum upload to 8MB
+app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
+
 
 def retrieve_history_files() -> list:
     return [file for file in os.listdir(os.path.join('static', 'images')) if not file.startswith('.')]
