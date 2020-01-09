@@ -1,0 +1,35 @@
+{% if data["solved_sudoku"][0] == "?" %}
+    <div class="row">
+        <div class="container col-md-4 col-sm-12">
+            <h3>Solver Problems!</h3>
+            <p>
+                Sudoku could not be solved. The most likely cause is that some digits were not recognized correctly. Please correct them below and submit.
+            </p>
+            <form action="{{ url_for('manual_recognition') }}" method="POST">
+                <table id="grid">
+                    {% for number in data["recognized_digits"] %}
+                        {% if (loop.index - 1) % 9 == 0 %}
+                            <tr>
+                        {% endif %}
+
+                        {% if (number == 0) %}
+                            <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input" name="{{ loop.index - 1 }}" type="text" value=""></td>
+                        {% else %}
+                            <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input under_review" name="{{ loop.index - 1 }}" type="text" value="{{ number }}"></td>
+                        {% endif %}
+
+                        {% if (loop.index) % 9 == 0 %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+
+                <input name="image_path" type="hidden" value="{{ data['image_path'] }}">
+                <input name="preprocessed_image_path" type="hidden" value="{{ data['preprocessed_image_path'] }}">
+
+                <br/>
+                <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+            </form>
+        </div>
+    </div>
+{% endif %}

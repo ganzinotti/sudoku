@@ -7,7 +7,7 @@
             {% endif %}
 
             {% if (number == 0) %}
-                <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input" type="text" value="" disabled></td>
+                <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input invalid" type="text" value="" disabled></td>
             {% else %}
                 <td><input id="cell-{{ loop.index - 1 }}" class="sudoku_input recognized" type="text" value="{{ number }}" disabled></td>
             {% endif %}

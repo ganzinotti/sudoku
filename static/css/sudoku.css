@@ -14,19 +14,19 @@ td {
     padding: 0;
     border: 0;
     text-align: center;
-    width: 32px;
-    height: 32px;
-    font-size: 20px;
+    width: 29px;
+    height: 29px;
+    font-size: 18px;
     outline: none;
 }
 .raw_img {
-    max-width: 300px;
+    max-width: 330px;
     width: 70%;
     height: auto;
 }
 .pp_img {
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 330px;
+    max-height: 330px;
 }
 .invalid {
     background: #FF0000;
@@ -34,8 +34,14 @@ td {
 .recognized {
     background: #59FF00;
 }
+.under_review {
+    background: #FF8F00;
+}
 .completed {
     background: #E8E8E8;
+}
+p {
+    font-size: 16px;
 }
 #cell-0,  #cell-1,  #cell-2  { border-top:    2px solid #000000; }
 #cell-2,  #cell-11, #cell-20 { border-right:  2px solid #000000; }
