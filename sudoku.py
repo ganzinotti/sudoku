@@ -8,6 +8,9 @@ pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 import numpy as np
 import os
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 app = Flask(__name__, static_url_path='/static')
 
 # set maximum upload to 8MB
@@ -65,6 +68,19 @@ def index():
             )
     else:
         return render_template('index.html', history_files=retrieve_history_files(), data={}, error=None)
+
+
+@app.route("/flush", methods=["GET"])
+def delete_files():
+    files = retrieve_history_files()
+
+    logging.info('Delete files.')
+    for file_name in files:
+        file_path = os.path.join('static', 'images', file_name)
+        os.remove(file_path)
+        logging.info(f'\tDeleted {file_path}')
+
+    return render_template('index.html', history_files=[], data={}, error=None)
 
 
 if __name__ == "__main__":
